@@ -21,7 +21,7 @@ int PC;
 int MAR;
 tCircuitoControle CIRCUITOCONTROLE;
 
-//metodos auxiliares
+//FUNÇÕES AUXILIARES
 
 int hexToDec(char * hexadecimal) {
     int i;
@@ -48,6 +48,108 @@ int hexToDec(char * hexadecimal) {
         expoente *= 16;
     }
     return decimal;
+}
+
+/*
+ * Retorna o valor de um inteiro em um caracter hexa
+ */
+char getHexValue(int value) {
+    if (value < 0) return -1;
+    if (value > 16) return -1;
+    if (value <= 9) {
+        value += '0';
+        return (char) value;
+    } else {
+        value -= 10;
+        return (char) ('A' + value);
+    }
+}
+
+/*
+ * Converte um decimal para inteiro
+ */
+void decToHex(int dec, char * hex) {
+    int resto = 0;
+    int i;
+    for (i = 0; i <= 10; i++){
+        hex[i] = '0';
+    }
+    i = 10;
+    while ((dec > 0) && (i >= 0)) {
+        printf("dec: %d\n", dec);
+        resto = dec % 16;
+        dec = dec / 16;
+        printf("resto: %d\n", resto);        
+        hex[i] = getHexValue(resto);
+        printf("char: %c\n", hex[i]);
+        i--;
+    }
+}
+
+void inverte(char * value) {
+    switch (value[0]) {
+        case '0':
+            value[0] = '8';
+            break;
+        case '1':
+            value[0] = '9';
+            break;
+        case '2':
+            value[0] = 'A';
+            break;
+        case '3':
+            value[0] = 'B';
+            break;
+        case '4':
+            value[0] = 'C';
+            break;
+        case '5':
+            value[0] = 'D';
+            break;
+        case '6':
+            value[0] = 'E';
+            break;
+        case '7':
+            value[0] = 'F';
+            break;
+        case '8':
+            value[0] = '0';
+            break;
+        case '9':
+            value[0] = '1';
+            break;
+        case 'A':
+            value[0] = '2';
+            break;
+        case 'B':
+            value[0] = '3';
+            break;
+        case 'C':
+            value[0] = '4';
+            break;
+        case 'D':
+            value[0] = '5';
+            break;
+        case 'E':
+            value[0] = '6';
+            break;
+        case 'F':
+            value[0] = '7';
+            break;
+    }
+}
+
+void modulo(char * value) {
+    if (!isPositivo(value)) {
+        inverte(value);
+    }
+}
+
+int isPositivo(char * value) {
+    if (value[0] < '8') {
+        return 1;
+    }
+    return 0;
 }
 
 void inverteAC() {
@@ -115,6 +217,8 @@ int ACisPositivo() {
     }
     return 0;
 }
+
+
 
 //Memoria
 char memoria[TAMMEMORIA][TAMLINHA];
@@ -250,6 +354,12 @@ void execucao() {
         }
     } else if (strcmp(IR, "05")) { //ADD M(X)
         strcpy(MBR, memoria[MAR]);
+        int ac = hexToDec(AC);
+        int mbr = hexToDec(MBR);
+        ac =+ mbr;
+        
+         
+
     } else if (strcmp(IR, "07")) { //ADD |M(X)|
         strcpy(MBR, memoria[MAR]);
     } else if (strcmp(IR, "06")) { //SUB M(X)
@@ -261,9 +371,17 @@ void execucao() {
     } else if (strcmp(IR, "0C")) { //DIV M(X)
         strcpy(MBR, memoria[MAR]);
     } else if (strcmp(IR, "14")) { //LSH
-        strcpy(MBR, memoria[MAR]);
+        int i;
+        for(i = 1; i <= 10; i++){
+            AC[i - 1] = AC[i];
+        }
+        AC[10] = 0;
     } else if (strcmp(IR, "15")) { //RSH
-        strcpy(MBR, memoria[MAR]);
+        int i;
+        for(i = 10; i >= 1; i--){
+            AC[i] = AC[i - 1];
+        }
+        AC[0] = 0;
     } else if (strcmp(IR, "12")) { //STOR M(X,8:19)
         strcpy(MBR, memoria[MAR]);
     } else if (strcmp(IR, "13")) { //STOR M(X,28:39)
@@ -272,6 +390,8 @@ void execucao() {
         PC = -1;
     }
 }
+
+
 
 int main(int argc, char** argv) {
     inicializaRegistradores();
@@ -288,6 +408,14 @@ int main(int argc, char** argv) {
     //buscaoperando();
     //executa();
     //escritaResultado();
+    
+    int teste = 100;
+    int i = 0;
+    decToHex(teste, AC);
+    for(i = 0; i <= 10; i++){
+        printf("%c", AC[i]);
+    }
+
     return (EXIT_SUCCESS);
 }
 
