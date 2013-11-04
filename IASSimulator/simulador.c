@@ -69,21 +69,43 @@ char getHexValue(int value) {
 /*
  * Converte um decimal para inteiro
  */
-void decToHex(int dec, char * hex) {
-    int resto = 0;
-    int i;
-    for (i = 0; i <= 10; i++){
-        hex[i] = '0';
+void decToHex(long int dec, char * hex, int tamanho) {
+    int negativo = 0;
+    if (dec < 0) {
+        negativo = 1;
+        dec *= -1;
     }
-    i = 10;
-    while ((dec > 0) && (i >= 0)) {
-        printf("dec: %d\n", dec);
+    int i;
+    int resto;
+    for (i = tamanho - 1; i >= 0; i--) {
         resto = dec % 16;
+        if (!i && negativo) {
+            resto += 8;
+        }
+        switch (resto) {
+            case 0 ... 9:
+                hex[i] = resto + '0';
+                break;
+            case 10:
+                hex[i] = 'A';
+                break;
+            case 11:
+                hex[i] = 'B';
+                break;
+            case 12:
+                hex[i] = 'C';
+                break;
+            case 13:
+                hex[i] = 'D';
+                break;
+            case 14:
+                hex[i] = 'E';
+                break;
+            case 15:
+                hex[i] = 'F';
+                break;
+        }
         dec = dec / 16;
-        printf("resto: %d\n", resto);        
-        hex[i] = getHexValue(resto);
-        printf("char: %c\n", hex[i]);
-        i--;
     }
 }
 
@@ -91,7 +113,7 @@ long int inverte(long int valor) {
     return valor * (-1);
 }
 
-void modulo(long int valor) {
+long int modulo(long int valor) {
     if (valor < 0) {
         return inverte(valor);
     }
@@ -134,17 +156,29 @@ void carregaMemoria(char * arquivo) {
         fgets(memoria[i++], TAMLINHA, hex);
     } while (!feof(hex));
 }
+void imprimeRegistradores(){
+    printf("AC: %d\n",AC);
+    printf("MQ: %d\n",MQ);
+    printf("MBR: %s\n",MBR);
+    printf("IBR: %s\n",IBR);
+    printf("IR: %s\n",IR);
+    printf("PC: %d\n",PC);
+    printf("MAR: %d\n\n",MAR);
+}
 
 void imprimeMemoria() {
     int i = 0;
-    while ((strlen(memoria[i]) != 0) && (i < TAMMEMORIA)) {
+//    while ((strlen(memoria[i]) != 0) && (i < TAMMEMORIA)) {
+//        printf("linha: %d - %s", i, memoria[i]);
+//        i++;
+//    }
+    for (i = 74; i < 90; i++){
         printf("linha: %d - %s", i, memoria[i]);
-        i++;
     }
 }
 
-void busca(int esquedaRequerida) {
-    if (esquedaRequerida) {
+void busca() {
+    if (CIRCUITOCONTROLE.instrucaoEsquerdaRequirida) {
         //verifica se tem instrução em IBR
         if (strlen(IBR) == 0) {
             MAR = PC;
@@ -197,113 +231,105 @@ void busca(int esquedaRequerida) {
 }
 
 void execucao() {
-    if (strcmp(IR, "0A")) { //LOAD MQ
+    if (strcmp(IR, "0A") == 0) { //LOAD MQ
         AC = MQ;
-    } else if (strcmp(IR, "09")) { //LOAD MQ,M(X)
+    } else if (strcmp(IR, "09") == 0) { //LOAD MQ,M(X)
         strcpy(MBR, memoria[MAR]);
         AC = hexToDec(MBR);
-    } else if (strcmp(IR, "21")) { //STOR M(X)
-        //TODO converter de decimal para Hexa
+    } else if (strcmp(IR, "21") == 0) { //STOR M(X)
+        decToHex(AC, MBR, 10);
         strcpy(memoria[MAR], MBR);
-    } else if (strcmp(IR, "01")) { //LOAD M(X)
+    } else if (strcmp(IR, "01") == 0) { //LOAD M(X)
         strcpy(MBR, memoria[MAR]);
         AC = hexToDec(MBR);
-    } else if (strcmp(IR, "02")) { //LOAD -M(X)
+    } else if (strcmp(IR, "02") == 0) { //LOAD -M(X)
         strcpy(MBR, memoria[MAR]);
         AC = hexToDec(MBR);
         AC = inverte(AC);
-    } else if (strcmp(IR, "03")) { //LOAD |M(X)|
+    } else if (strcmp(IR, "03") == 0) { //LOAD |M(X)|
         strcpy(MBR, memoria[MAR]);
         AC = hexToDec(MBR);
         AC = modulo(AC);
-    } else if (strcmp(IR, "04")) { //LOAD -|(X)|
+    } else if (strcmp(IR, "04") == 0) { //LOAD -|(X)|
         strcpy(MBR, memoria[MAR]);
         AC = hexToDec(MBR);
         AC = modulo(AC);
         AC = inverte(AC);
-    } else if (strcmp(IR, "0D")) { //JUMP M(X,0:19)
+    } else if (strcmp(IR, "0D") == 0) { //JUMP M(X,0:19)
         PC = MAR;
-    } else if (strcmp(IR, "0E")) { //JUMP M(X,20:39)
+    } else if (strcmp(IR, "0E") == 0) { //JUMP M(X,20:39)
         PC = MAR;
         CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 0;
-    } else if (strcmp(IR, "0F")) { //JUMP+ M(X,0:19)
+    } else if (strcmp(IR, "0F") == 0) { //JUMP+ M(X,0:19)
         if (isPositivo(AC)) {
             PC = MAR;
         }
-    } else if (strcmp(IR, "10")) { //JUMP+ M(X,20:39)
+    } else if (strcmp(IR, "10") == 0) { //JUMP+ M(X,20:39)
         if (isPositivo(AC)) {
             PC = MAR;
             CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 0;
         }
-    } else if (strcmp(IR, "05")) { //ADD M(X)
+    } else if (strcmp(IR, "05") == 0) { //ADD M(X)
         strcpy(MBR, memoria[MAR]);
         long int mbr = hexToDec(MBR);
         AC += mbr;
-    } else if (strcmp(IR, "07")) { //ADD |M(X)|
+    } else if (strcmp(IR, "07") == 0) { //ADD |M(X)|
         strcpy(MBR, memoria[MAR]);
         long int mbr = hexToDec(MBR);
         mbr = modulo(mbr);
         AC += mbr;
-    } else if (strcmp(IR, "06")) { //SUB M(X)
+    } else if (strcmp(IR, "06") == 0) { //SUB M(X)
         strcpy(MBR, memoria[MAR]);
         long int mbr = hexToDec(MBR);
         AC -= mbr;
-    } else if (strcmp(IR, "08")) { //SUB |M(X)|
+    } else if (strcmp(IR, "08") == 0) { //SUB |M(X)|
         strcpy(MBR, memoria[MAR]);
         long int mbr = hexToDec(MBR);
         mbr = modulo(mbr);
         AC -= mbr;
-    } else if (strcmp(IR, "0B")) { //MUL M(X)
+    } else if (strcmp(IR, "0B") == 0) { //MUL M(X)
         strcpy(MBR, memoria[MAR]);
         long int mbr = hexToDec(MBR);
         MQ = MQ * mbr;
         if (MQ > NUMEROMAX)
-              AC = MQ - NUMEROMAX;
+            AC = MQ - NUMEROMAX;
         else
-              AC = 0;
-    } else if (strcmp(IR, "0C")) { //DIV M(X)
+            AC = 0;
+    } else if (strcmp(IR, "0C") == 0) { //DIV M(X)
         strcpy(MBR, memoria[MAR]);
         long int mbr = hexToDec(MBR);
         MQ = AC / mbr;
         AC = AC % mbr;
-    } else if (strcmp(IR, "14")) { //LSH
-        AC = AC<<1;
-    } else if (strcmp(IR, "15")) { //RSH
-        AC = AC>>1;
-    } else if (strcmp(IR, "12")) { //STOR M(X,8:19)
-        strcpy(MBR, memoria[MAR]);
-    } else if (strcmp(IR, "13")) { //STOR M(X,28:39)
-        strcpy(MBR, memoria[MAR]);
-    } else { //EXIT
+    } else if (strcmp(IR, "14") == 0) { //LSH
+        AC = AC << 1;
+    } else if (strcmp(IR, "15") == 0) { //RSH
+        AC = AC >> 1;strcpy(MBR, memoria[MAR]);
+    } else if (strcmp(IR, "12") == 0) { //STOR M(X,8:19)
+        decToHex(AC, MBR, 3);
+        int i;
+        for (i = 2; i < 5; i++) {
+            memoria[MAR][i] = MBR[i-2];
+        }
+    } else if (strcmp(IR, "13") == 0) { //STOR M(X,28:39)
+        decToHex(AC, MBR, 3);
+        int i;
+        for (i = 7; i < 10; i++) {
+            memoria[MAR][i] = MBR[i-7];
+        }
+    } else{ //EXIT
         PC = -1;
     }
 }
 
-
-
 int main(int argc, char** argv) {
     inicializaRegistradores();
     carregaMemoria("teste2.hex");
-    //do{
-    //    PC = 0;
-    //    busca();
-    //    busca();
-    //    busca();
-    //    busca();   
-    //} while (PC != -1);
-    //busca();
-    //decodifica();
-    //buscaoperando();
-    //executa();
-    //escritaResultado();
-    
-    int teste = 100;
-    int i = 0;
-    decToHex(teste, AC);
-    for(i = 0; i <= 10; i++){
-        printf("%c", AC[i]);
-    }
-
+    PC = 0;
+    do{
+        busca();
+        execucao();
+    } while (PC != -1);
+    imprimeMemoria();
     return (EXIT_SUCCESS);
 }
 
