@@ -2,48 +2,79 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
+#include <math.h>
 
 #define TAMMEMORIA 4096
 #define TAMLINHA 12
-#define NUMEROMAX 549755813888
+#define NUMEROMAX 549755813887
+
+/*==============================================================================
+ *Definição da Arquitetura
+ */
+typedef struct {
+    unsigned int instrucaoEsquerdaRequirida : 1;
+    unsigned int erro : 1;
+    unsigned int proximaIBR : 1;
+} tCircuitoControle;
 
 typedef struct {
-    int instrucaoEsquerdaRequirida;
-} tCircuitoControle;
-//Registradores
-//ULA
-long int AC;
-long int MQ;
-char * MBR;
-//UC
-char * IBR;
-char * IR;
-int PC;
-int MAR;
-tCircuitoControle CIRCUITOCONTROLE;
+    unsigned long int AC : 40;
+    unsigned long int MQ : 40;
+    unsigned long int MBR : 40;
+} tULA;
 
-//FUNÇÕES AUXILIARES
+typedef struct {
+    unsigned long int IR : 8;
+    unsigned long int IBR : 20;
+    int MAR : 12;
+    int PC : 12;
+    tCircuitoControle CIRCUITOCONTROLE;
+} tUC;
 
+typedef struct {
+    long int linha : 40;
+} tlinha;
+
+/*==============================================================================
+ *Declaração da Arquitetura
+ */
+tlinha memoria[4096];
+tULA ula;
+tUC uc;
+
+/*==============================================================================
+ *Funções Auxiliares
+ */
 long int hexToDec(char * hexadecimal) {
     int i;
     int numero;
     long int decimal = 0;
-    int expoente = 1;
+    long int expoente = 1;
     for (i = strlen(hexadecimal) - 1; i >= 0; i--) {
-        if (hexadecimal[i] == 'A') {
-            numero = 10;
-        } else if (hexadecimal[i] == 'B') {
-            numero = 11;
-        } else if (hexadecimal[i] == 'C') {
-            numero = 12;
-        } else if (hexadecimal[i] == 'D') {
-            numero = 13;
-        } else if (hexadecimal[i] == 'E') {
-            numero = 14;
-        } else if (hexadecimal[i] == 'F') {
-            numero = 15;
-        } else {
-            numero = hexadecimal[i] - 48;
+        switch (hexadecimal[i]) {
+            case 10: //quando tem um \n
+                continue;
+            case '0' ... '9':
+                numero = hexadecimal[i] - 48;
+                break;
+            case 'A':
+                numero = 10;
+                break;
+            case 'B':
+                numero = 11;
+                break;
+            case 'C':
+                numero = 12;
+                break;
+            case 'D':
+                numero = 13;
+                break;
+            case 'E':
+                numero = 14;
+                break;
+            case 'F':
+                numero = 15;
+                break;
         }
         decimal += numero*expoente;
         expoente *= 16;
@@ -51,95 +82,50 @@ long int hexToDec(char * hexadecimal) {
     return decimal;
 }
 
-/*
- * Retorna o valor de um inteiro em um caracter hexa
+void imprimeMemoria() {
+    int i = 0;
+    while (i < 130) {
+        printf("%d - %lX\n", i, memoria[i].linha);
+        i++;
+    }
+}
+
+long int mask(long int valor, long int mascara, int deslocamento) {
+    return (valor & mascara) >> (deslocamento * 4);
+}
+
+/*==============================================================================
+ * Gerenciamento de Memória
  */
-char getHexValue(int value) {
-    if (value < 0) return -1;
-    if (value > 16) return -1;
-    if (value <= 9) {
-        value += '0';
-        return (char) value;
+
+long int load(int index) {
+    if (index < TAMMEMORIA) {
+        return memoria[index].linha;
     } else {
-        value -= 10;
-        return (char) ('A' + value);
+        uc.CIRCUITOCONTROLE.erro = 1;
+        return NULL;
     }
 }
 
-/*
- * Converte um decimal para inteiro
- */
-void decToHex(long int dec, char * hex, int tamanho) {
-    int negativo = 0;
-    if (dec < 0) {
-        negativo = 1;
-        dec *= -1;
+void stor(int index, long int value) {
+    if (index < TAMMEMORIA) {
+        memoria[index].linha = value;
+    } else {
+        uc.CIRCUITOCONTROLE.erro = 1;
     }
-    int i;
-    int resto;
-    for (i = tamanho - 1; i >= 0; i--) {
-        resto = dec % 16;
-        if (!i && negativo) {
-            resto += 8;
+}
+
+void storEndereco(int index, long int value, int esquerda) {
+    if (index < TAMMEMORIA) {
+        if (esquerda){
+            value = value<<20;
+            memoria[index].linha = (memoria[index].linha & 0xFF000FFFFF) + value;
+        } else {
+            memoria[index].linha = (memoria[index].linha & 0xFFFFFFF000) + value;
         }
-        switch (resto) {
-            case 0 ... 9:
-                hex[i] = resto + '0';
-                break;
-            case 10:
-                hex[i] = 'A';
-                break;
-            case 11:
-                hex[i] = 'B';
-                break;
-            case 12:
-                hex[i] = 'C';
-                break;
-            case 13:
-                hex[i] = 'D';
-                break;
-            case 14:
-                hex[i] = 'E';
-                break;
-            case 15:
-                hex[i] = 'F';
-                break;
-        }
-        dec = dec / 16;
+    } else {
+        uc.CIRCUITOCONTROLE.erro = 1;
     }
-}
-
-long int inverte(long int valor) {
-    return valor * (-1);
-}
-
-long int modulo(long int valor) {
-    if (valor < 0) {
-        return inverte(valor);
-    }
-    return valor;
-}
-
-int isPositivo(long int valor) {
-    if (valor > 0) {
-        return 1;
-    }
-    return 0;
-}
-
-//Memoria
-char memoria[TAMMEMORIA][TAMLINHA];
-
-void inicializaRegistradores() {
-    AC = 0;
-    MQ = 0;
-    MBR = malloc(10);
-
-    IBR = malloc(5);
-    IR = malloc(2);
-    PC = 0;
-    MAR = 0;
-    CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 1;
 }
 
 void carregaMemoria(char * arquivo) {
@@ -152,184 +138,217 @@ void carregaMemoria(char * arquivo) {
         printf("Falha ao abrir o arquivo .hex\n");
     }
     int i = 0;
+    char * linha = malloc(TAMLINHA);
+    long int numero;
     do {
-        fgets(memoria[i++], TAMLINHA, hex);
+        fgets(linha, TAMLINHA, hex);
+        numero = hexToDec(linha);
+        stor(i++,numero);
     } while (!feof(hex));
 }
-void imprimeRegistradores(){
-    printf("AC: %d\n",AC);
-    printf("MQ: %d\n",MQ);
-    printf("MBR: %s\n",MBR);
-    printf("IBR: %s\n",IBR);
-    printf("IR: %s\n",IR);
-    printf("PC: %d\n",PC);
-    printf("MAR: %d\n\n",MAR);
-}
 
-void imprimeMemoria() {
-    int i = 0;
-//    while ((strlen(memoria[i]) != 0) && (i < TAMMEMORIA)) {
-//        printf("linha: %d - %s", i, memoria[i]);
-//        i++;
-//    }
-    for (i = 74; i < 90; i++){
-        printf("linha: %d - %s", i, memoria[i]);
+/*==============================================================================
+ *Unidade Lógica e Aritmética
+ */
+void circuitoLogicoAritmetico(int opcode, unsigned long int mbr,
+                unsigned long int * ac, unsigned long int * mq) {
+    switch (opcode) {
+        case 0x5: //add m(x)
+            *ac += mbr;
+            break;
+        case 0x6: //sub m(x)
+            *ac -= mbr;
+            break;
+        case 0x7: //add |m(x)|
+            *ac += labs(mbr);
+            break;
+        case 0x8: //sub |m(x)|
+            *ac -= labs(mbr);
+            break;
+        case 0xB: //mul m(x)
+            if ((mbr * *mq) > NUMEROMAX) {
+                *ac = (mbr * *mq) - NUMEROMAX;
+                *mq *= mbr;
+            } else {
+                *mq *= mbr;
+            }
+            break;
+        case 0xC: //div m(x)
+            *mq = *ac / mbr;
+            *ac %= mbr;
+            break;
+        case 0x14: //lsh
+            *ac <<= 1;
+            break;
+        case 0x15: //rsh
+            *ac >>= 1;
+            break;
     }
 }
 
-void busca() {
-    if (CIRCUITOCONTROLE.instrucaoEsquerdaRequirida) {
-        //verifica se tem instrução em IBR
-        if (strlen(IBR) == 0) {
-            MAR = PC;
-            MBR = memoria[MAR];
-            int i;
-            for (i = 0; i < 2; i++) {
-                IR[i] = MBR[i];
-            }
-            int j = 0;
-            for (i = 5; i < 10; i++) {
-                IBR[j++] = MBR[i];
-            }
-            j = 0;
-            char aux[3];
-            for (i = 2; i < 5; i++) {
-                aux[j++] = MBR[i];
-            }
-            MAR = atoi(aux);
+
+/*==============================================================================
+ *Unidade de Controle
+ */
+void init() {
+    int i;
+    for (i = 0; i < TAMMEMORIA; i++) {
+        stor(i,0);
+    }
+    ula.AC = 0;
+    ula.MBR = 0;
+    ula.MQ = 0;
+    uc.PC = 0;
+    uc.MAR = 0;
+    uc.IR = 0;
+    uc.IBR = 0;
+    uc.CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 1;
+    uc.CIRCUITOCONTROLE.erro = 0;
+    uc.CIRCUITOCONTROLE.proximaIBR = 0;
+}
+
+void busca(unsigned long int * ir, unsigned long int * ibr, unsigned long int * mbr ,
+        unsigned int * mar, unsigned int * pc, unsigned int * proximaIbr,
+        unsigned int * instrucaoEsquerdaRequerida) {
+    if (*instrucaoEsquerdaRequerida) {
+        if (*proximaIbr) {
+            *ir = mask(*ibr, 0xFF000, 3);
+            *mar = mask(*ibr, 0x00FFF, 0);
+            *pc++;
+            *proximaIbr = 0;
         } else {
-            int i;
-            for (i = 0; i < 2; i++) {
-                IR[i] = IBR[i];
-            }
-            int j = 0;
-            char aux[3];
-            for (i = 2; i < 5; i++) {
-                aux[j++] = IBR[i];
-            }
-            MAR = atoi(aux);
-            IBR[0] = '\0';
-            PC++;
+            *mar = *pc;
+            *mbr = load(*mar);
+            *ir = mask(*mbr, 0xFF00000000, 8);
+            *ibr = mask(*mbr, 0x00000FFFFF, 0);
+            *mar = mask(*mbr, 0x00FFF00000, 5);
+            *proximaIbr = 1;
         }
     } else {
-        MAR = PC;
-        int j = 0;
-        int i;
-        for (i = 5; i < 7; i++) {
-            IR[j++] = MBR[i];
-        }
-        j = 0;
-        char aux[3];
-        for (i = 7; i < 10; i++) {
-            aux[j++] = MBR[i];
-        }
-        MAR = atoi(aux);
-        IBR[0] = '\0';
-        PC++;
-        CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 1;
+        *mar = *pc;
+        *mbr = load(*mar);
+        *ir = mask(*mbr, 0x00000FF000, 3);
+        *mar = mask(*mbr, 0x0000000FFF, 0);
+        *proximaIbr = 0;
+        *instrucaoEsquerdaRequerida = 1;
+        *pc++;
     }
 }
 
-void execucao() {
-    if (strcmp(IR, "0A") == 0) { //LOAD MQ
-        AC = MQ;
-    } else if (strcmp(IR, "09") == 0) { //LOAD MQ,M(X)
-        strcpy(MBR, memoria[MAR]);
-        AC = hexToDec(MBR);
-    } else if (strcmp(IR, "21") == 0) { //STOR M(X)
-        decToHex(AC, MBR, 10);
-        strcpy(memoria[MAR], MBR);
-    } else if (strcmp(IR, "01") == 0) { //LOAD M(X)
-        strcpy(MBR, memoria[MAR]);
-        AC = hexToDec(MBR);
-    } else if (strcmp(IR, "02") == 0) { //LOAD -M(X)
-        strcpy(MBR, memoria[MAR]);
-        AC = hexToDec(MBR);
-        AC = inverte(AC);
-    } else if (strcmp(IR, "03") == 0) { //LOAD |M(X)|
-        strcpy(MBR, memoria[MAR]);
-        AC = hexToDec(MBR);
-        AC = modulo(AC);
-    } else if (strcmp(IR, "04") == 0) { //LOAD -|(X)|
-        strcpy(MBR, memoria[MAR]);
-        AC = hexToDec(MBR);
-        AC = modulo(AC);
-        AC = inverte(AC);
-    } else if (strcmp(IR, "0D") == 0) { //JUMP M(X,0:19)
-        PC = MAR;
-    } else if (strcmp(IR, "0E") == 0) { //JUMP M(X,20:39)
-        PC = MAR;
-        CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 0;
-    } else if (strcmp(IR, "0F") == 0) { //JUMP+ M(X,0:19)
-        if (isPositivo(AC)) {
-            PC = MAR;
-        }
-    } else if (strcmp(IR, "10") == 0) { //JUMP+ M(X,20:39)
-        if (isPositivo(AC)) {
-            PC = MAR;
-            CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 0;
-        }
-    } else if (strcmp(IR, "05") == 0) { //ADD M(X)
-        strcpy(MBR, memoria[MAR]);
-        long int mbr = hexToDec(MBR);
-        AC += mbr;
-    } else if (strcmp(IR, "07") == 0) { //ADD |M(X)|
-        strcpy(MBR, memoria[MAR]);
-        long int mbr = hexToDec(MBR);
-        mbr = modulo(mbr);
-        AC += mbr;
-    } else if (strcmp(IR, "06") == 0) { //SUB M(X)
-        strcpy(MBR, memoria[MAR]);
-        long int mbr = hexToDec(MBR);
-        AC -= mbr;
-    } else if (strcmp(IR, "08") == 0) { //SUB |M(X)|
-        strcpy(MBR, memoria[MAR]);
-        long int mbr = hexToDec(MBR);
-        mbr = modulo(mbr);
-        AC -= mbr;
-    } else if (strcmp(IR, "0B") == 0) { //MUL M(X)
-        strcpy(MBR, memoria[MAR]);
-        long int mbr = hexToDec(MBR);
-        MQ = MQ * mbr;
-        if (MQ > NUMEROMAX)
-            AC = MQ - NUMEROMAX;
-        else
-            AC = 0;
-    } else if (strcmp(IR, "0C") == 0) { //DIV M(X)
-        strcpy(MBR, memoria[MAR]);
-        long int mbr = hexToDec(MBR);
-        MQ = AC / mbr;
-        AC = AC % mbr;
-    } else if (strcmp(IR, "14") == 0) { //LSH
-        AC = AC << 1;
-    } else if (strcmp(IR, "15") == 0) { //RSH
-        AC = AC >> 1;strcpy(MBR, memoria[MAR]);
-    } else if (strcmp(IR, "12") == 0) { //STOR M(X,8:19)
-        decToHex(AC, MBR, 3);
-        int i;
-        for (i = 2; i < 5; i++) {
-            memoria[MAR][i] = MBR[i-2];
-        }
-    } else if (strcmp(IR, "13") == 0) { //STOR M(X,28:39)
-        decToHex(AC, MBR, 3);
-        int i;
-        for (i = 7; i < 10; i++) {
-            memoria[MAR][i] = MBR[i-7];
-        }
-    } else{ //EXIT
-        PC = -1;
-    }
+void buscaOperandos(int mar, unsigned long int * mbr) {
+    *mbr = load(mar);
 }
 
+void decodificaExecuta(int mar, unsigned long int ir, unsigned long int * mbr,
+        unsigned long int * ac, unsigned long int * mq, unsigned int * pc,
+        unsigned int * instrucaoEsquerdaRequerida) {
+    switch (ir) {
+        case 0xA: //load mq
+            *ac = *mq;
+            break;
+        case 0x9: //load mq,m(x)
+            buscaOperandos(mar,mbr);
+            *mq = *mbr;
+            break;
+        case 0x21: //stor m(x)
+            stor(mar,*ac);
+            break;
+        case 0x1: //load m(x)
+            buscaOperandos(mar,mbr);
+            *ac = *mbr;
+            break;
+        case 0x2: //load -m(x)
+            buscaOperandos(mar,mbr);
+            *ac = *mbr;
+            *ac ^= 0x8000000000;
+            break;
+        case 0x3: //load |m(x)|
+            buscaOperandos(mar,mbr);
+            *ac = *mbr;
+            *ac &= 0x7FFFFFFFFF;
+            break;
+        case 0x4: //load -|m(x)|
+            buscaOperandos(mar,mbr);
+            *ac = *mbr;
+            *ac &= 0x7FFFFFFFFF;
+            *ac ^= 0x8000000000;
+            break;
+        case 0xD: //jump m(x,0:19)
+            buscaOperandos(mar,mbr);
+            *pc = *mbr;
+            break;
+        case 0xE: //jump m(x,20:39)
+            buscaOperandos(mar,mbr);
+            *pc = *mbr;
+            *instrucaoEsquerdaRequerida = 0;
+            break;
+        case 0xF: //jump+ m(x,0:19)
+            if (*ac < 0){
+                buscaOperandos(mar,mbr);
+                *pc = *mbr;
+            }
+            break;
+        case 0x10: //jump + m(x,20:39)
+            if (*ac < 0){
+                buscaOperandos(mar,mbr);
+                *pc = *mbr;
+                *instrucaoEsquerdaRequerida = 0;
+            }
+            break;
+        case 0x5: //add m(x)
+            buscaOperandos(mar,mbr);
+            circuitoLogicoAritmetico(ir,*mbr,ac,mq);
+            break;
+        case 0x6: //sub m(x)
+            buscaOperandos(mar,mbr);
+            circuitoLogicoAritmetico(ir,*mbr,ac,mq);
+            break;
+        case 0x7: //add |m(x)|
+            buscaOperandos(mar,mbr);
+            circuitoLogicoAritmetico(ir,*mbr,ac,mq);
+            break;
+        case 0x8: //sub |m(x)|
+            buscaOperandos(mar,mbr);
+            circuitoLogicoAritmetico(ir,*mbr,ac,mq);
+            break;
+        case 0xB: //mul m(x)
+            buscaOperandos(mar,mbr);
+            circuitoLogicoAritmetico(ir,*mbr,ac,mq);
+            break;
+        case 0xC: //div m(x)
+            buscaOperandos(mar,mbr);
+            circuitoLogicoAritmetico(ir,*mbr,ac,mq);
+            break;
+        case 0x14: //lsh
+            buscaOperandos(mar,mbr);
+            circuitoLogicoAritmetico(ir,*mbr,ac,mq);
+            break;
+        case 0x15: //rsh
+            buscaOperandos(mar,mbr);
+            circuitoLogicoAritmetico(ir,*mbr,ac,mq);
+            break;
+        case 0x12: //stor m(x,8:19)
+            buscaOperandos(mar,mbr);
+            storEndereco(*mbr,*ac,1);
+            break;
+        case 0x13: //stor m(x,28:39)
+            buscaOperandos(mar,mbr);
+            storEndereco(*mbr,*ac,0);
+            break;
+        case 0x0: //exit
+            *pc = -1;
+    }
+}
+/*==============================================================================
+ *Programa Principal
+ */
 int main(int argc, char** argv) {
-    inicializaRegistradores();
+    init();
     carregaMemoria("teste2.hex");
-    PC = 0;
     do{
-        busca();
-        execucao();
-    } while (PC != -1);
+        busca(&uc.IR,&uc.IBR,&ula.MBR,&uc.MAR,&uc.PC,&uc.CIRCUITOCONTROLE.proximaIBR,&uc.CIRCUITOCONTROLE.instrucaoEsquerdaRequirida);
+        decodificaExecuta(uc.MAR,uc.IR,&ula.MBR,&ula.AC,&ula.MQ,&uc.PC,&uc.CIRCUITOCONTROLE.instrucaoEsquerdaRequirida);
+    } while (uc.PC != -1 || uc.CIRCUITOCONTROLE.erro != 1);
     imprimeMemoria();
-    return (EXIT_SUCCESS);
+    return (0);
 }
-

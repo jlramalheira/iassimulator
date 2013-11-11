@@ -9,6 +9,8 @@
                    displayName="Arquivos de Código-Fonte"
                    projectFiles="true">
       <itemPath>simulador.c</itemPath>
+      <itemPath>ula.c</itemPath>
+      <itemPath>util.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Arquivos de Recurso"
@@ -39,6 +41,10 @@
       </compileType>
       <item path="simulador.c" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="ula.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="util.c" ex="false" tool="0" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
@@ -62,6 +68,10 @@
         </asmTool>
       </compileType>
       <item path="simulador.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="ula.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="util.c" ex="false" tool="0" flavor2="0">
       </item>
     </conf>
   </confs>
