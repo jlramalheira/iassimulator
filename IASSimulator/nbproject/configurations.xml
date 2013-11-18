@@ -8,7 +8,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Arquivos de Código-Fonte"
                    projectFiles="true">
+      <itemPath>memoria.c</itemPath>
+      <itemPath>registrador.c</itemPath>
       <itemPath>simulador.c</itemPath>
+      <itemPath>uc.c</itemPath>
       <itemPath>ula.c</itemPath>
       <itemPath>util.c</itemPath>
     </logicalFolder>
@@ -39,7 +42,13 @@
       </toolsSet>
       <compileType>
       </compileType>
+      <item path="memoria.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="registrador.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="simulador.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="uc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="ula.c" ex="false" tool="0" flavor2="0">
       </item>
@@ -67,7 +76,13 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="memoria.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="registrador.c" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="simulador.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="uc.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="ula.c" ex="false" tool="0" flavor2="0">
       </item>

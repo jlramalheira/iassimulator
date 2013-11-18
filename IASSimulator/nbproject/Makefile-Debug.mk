@@ -35,7 +35,10 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/memoria.o \
+	${OBJECTDIR}/registrador.o \
 	${OBJECTDIR}/simulador.o \
+	${OBJECTDIR}/uc.o \
 	${OBJECTDIR}/ula.o \
 	${OBJECTDIR}/util.o
 
@@ -64,10 +67,25 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/iassimulator: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/iassimulator ${OBJECTFILES} ${LDLIBSOPTIONS}
 
+${OBJECTDIR}/memoria.o: memoria.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/memoria.o memoria.c
+
+${OBJECTDIR}/registrador.o: registrador.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/registrador.o registrador.c
+
 ${OBJECTDIR}/simulador.o: simulador.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/simulador.o simulador.c
+
+${OBJECTDIR}/uc.o: uc.c 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.c) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/uc.o uc.c
 
 ${OBJECTDIR}/ula.o: ula.c 
 	${MKDIR} -p ${OBJECTDIR}
