@@ -13,8 +13,23 @@ typedef struct {
     unsigned long int MBR : 40;
 } tULA;
 
+typedef struct {
+    unsigned int instrucaoEsquerdaRequirida : 1;
+    unsigned int erro : 1;
+    unsigned int proximaIBR : 1;
+} tCircuitoControle;
+
+typedef struct {
+    unsigned long int IR : 8;
+    unsigned long int IBR : 20;
+    int MAR : 12;
+    int PC : 12;
+    tCircuitoControle CIRCUITOCONTROLE;
+} tUC;
+
 extern tlinha memoria[4096];
 extern tULA ula;
+extern tUC uc;
 
 void converteGrava(char * hexadecimal, int j) {
     int i;
@@ -60,6 +75,16 @@ void imprimeMemoria() {
         printf("%d - %lX\n", i, memoria[i].linha);
         i++;
     }
+}
+
+void imprimeRegistradores() {
+    printf("AC: %ld - ", ula.AC);
+    printf("MQ: %ld\n", ula.MQ);
+    printf("MBR: %lX\n", ula.MBR);
+    printf("IBR: %lX\n", uc.IBR);
+    printf("IR: %lX\n", uc.IR);
+    printf("PC: %d\n", uc.PC);
+    printf("MAR: %d\n", uc.MAR);
 }
 
 long int mask(long int valor, long int mascara, int deslocamento) {

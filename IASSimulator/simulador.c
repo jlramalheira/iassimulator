@@ -8,12 +8,6 @@ typedef struct {
 } tlinha;
 
 typedef struct {
-    unsigned long int AC : 40;
-    unsigned long int MQ : 40;
-    unsigned long int MBR : 40;
-} tULA;
-
-typedef struct {
     unsigned int instrucaoEsquerdaRequirida : 1;
     unsigned int erro : 1;
     unsigned int proximaIBR : 1;
@@ -28,7 +22,6 @@ typedef struct {
 } tUC;
 
 extern tlinha memoria[4096];
-extern tULA ula;
 extern tUC uc;
 
 /*==============================================================================
@@ -45,8 +38,6 @@ extern tUC uc;
  *Unidade Lógica e Aritmética
  */
 
-
-
 /*==============================================================================
  *Unidade de Controle
  */
@@ -55,15 +46,6 @@ extern tUC uc;
  *Programa Principal
  */
 
-void imprimeRegistradores() {
-    printf("AC: %ld - ", ula.AC);
-    printf("MQ: %ld\n", ula.MQ);
-    printf("MBR: %lX\n", ula.MBR);
-    printf("IBR: %lX\n", uc.IBR);
-    printf("IR: %lX\n", uc.IR);
-    printf("PC: %d\n", uc.PC);
-    printf("MAR: %d\n", uc.MAR);
-}
 int main(int argc, char** argv) {
     init();
     carregaMemoria("teste2.hex");
@@ -71,7 +53,7 @@ int main(int argc, char** argv) {
     do{
         busca();
         imprimeRegistradores();
-        //imprimeMemoria();
+        imprimeMemoria();
         decodificaExecuta();
     } while (uc.PC != -1 && uc.CIRCUITOCONTROLE.erro != 1);
     imprimeMemoria();
