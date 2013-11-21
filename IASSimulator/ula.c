@@ -79,6 +79,7 @@ void circuitoLogicoAritmetico() {
                 ula.MQ = numeroSinal(operador1 * operador2);
             } else {
                 ula.MQ = numeroSinal(operador1 * operador2);
+                ula.AC = 0x00000000;
             }
             break;
         case 0xC: //div m(x)

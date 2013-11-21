@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/memoria.o \
-	${OBJECTDIR}/registrador.o \
 	${OBJECTDIR}/simulador.o \
 	${OBJECTDIR}/uc.o \
 	${OBJECTDIR}/ula.o \
@@ -71,11 +70,6 @@ ${OBJECTDIR}/memoria.o: memoria.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
 	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/memoria.o memoria.c
-
-${OBJECTDIR}/registrador.o: registrador.c 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} $@.d
-	$(COMPILE.c) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/registrador.o registrador.c
 
 ${OBJECTDIR}/simulador.o: simulador.c 
 	${MKDIR} -p ${OBJECTDIR}

@@ -5,7 +5,7 @@
 #define TAMLINHA 12
 
 typedef struct {
-    long int linha : 40;
+    unsigned long int linha : 40;
 } tlinha;
 
 typedef struct {
@@ -33,6 +33,7 @@ extern tULA ula;
 extern tUC uc;
 
 void load(int index) {
+    //push index chama assembly in line
     if (index < TAMMEMORIA) {
         ula.MBR = memoria[index].linha;
     } else {
