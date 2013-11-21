@@ -4,7 +4,7 @@
 #include <string.h>
 
 typedef struct {
-    long int linha : 40;
+    unsigned long int linha : 40;
 } tlinha;
 
 typedef struct {
@@ -71,6 +71,7 @@ int main(int argc, char** argv) {
     do{
         busca();
         imprimeRegistradores();
+        //imprimeMemoria();
         decodificaExecuta();
     } while (uc.PC != -1 && uc.CIRCUITOCONTROLE.erro != 1);
     imprimeMemoria();

@@ -109,19 +109,23 @@ void decodificaExecuta() {
             break;
         case 0xD: //jump m(x,0:19)
             uc.PC = uc.MAR;
+            uc.CIRCUITOCONTROLE.proximaIBR = 0;
             break;
         case 0xE: //jump m(x,20:39)
             uc.PC = uc.MAR;
+            uc.CIRCUITOCONTROLE.proximaIBR = 0;
             uc.CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 0;
             break;
         case 0xF: //jump+ m(x,0:19)
             if (ula.AC <= 0x7FFFFFFFFF){
                 uc.PC = uc.MAR;
+                uc.CIRCUITOCONTROLE.proximaIBR = 0;
             }
             break;
         case 0x10: //jump + m(x,20:39)
             if (ula.AC <= 0x7FFFFFFFFF){
                 uc.PC = uc.MAR;
+                uc.CIRCUITOCONTROLE.proximaIBR = 0;
                 uc.CIRCUITOCONTROLE.instrucaoEsquerdaRequirida = 0;
             }
             break;

@@ -4,7 +4,7 @@
 #include <string.h>
 
 typedef struct {
-    long int linha : 40;
+    unsigned long int linha : 40;
 } tlinha;
 
 typedef struct {
@@ -56,7 +56,7 @@ void converteGrava(char * hexadecimal, int j) {
 
 void imprimeMemoria() {
     int i = 0;
-    while (i < 30) {
+    while (i < 57) {
         printf("%d - %lX\n", i, memoria[i].linha);
         i++;
     }
