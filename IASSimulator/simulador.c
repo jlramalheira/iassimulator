@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     int i;
     char * nomeArquivo = malloc(30);
     int inicioMemoria = 0;
-    int fimMemoria = 4095;
+    int fimMemoria = 60;
     int passoPasso = 0;
     int tamMemoria = 2000;
     
