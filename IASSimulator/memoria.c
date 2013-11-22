@@ -28,10 +28,13 @@ typedef struct {
     tCircuitoControle CIRCUITOCONTROLE;
 } tUC;
 
-tlinha memoria[4096];
+tlinha * memoria;
 extern tULA ula;
 extern tUC uc;
 
+void iniciaMemoria(int tamMemoria){
+    memoria = (tlinha *) malloc(tamMemoria * sizeof(tlinha));
+}
 void load(int index) {
     //push index chama assembly in line
     if (index < TAMMEMORIA) {

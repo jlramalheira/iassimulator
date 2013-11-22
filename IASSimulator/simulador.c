@@ -21,7 +21,7 @@ typedef struct {
     tCircuitoControle CIRCUITOCONTROLE;
 } tUC;
 
-extern tlinha memoria[4096];
+extern tlinha * memoria;
 extern tUC uc;
 
 /*==============================================================================
@@ -47,15 +47,41 @@ extern tUC uc;
  */
 
 int main(int argc, char** argv) {
-    init();
+    //pegar parametros
+    int i;
+    char * nomeArquivo = malloc(30);
+    int inicioMemoria = 0;
+    int fimMemoria = 4095;
+    int passoPasso = 0;
+    int tamMemoria = 2000;
+    
+    for(i = 1; i <= argc-1; i++){
+        char * comando = argv[i];
+        if (strcmp(comando,"-m") == 0){
+            tamMemoria = atoi(argv[++i]);
+        }
+        if (strcmp(comando,"-n") == 0){
+            nomeArquivo = argv[++i];
+        }
+        if (strcmp(comando,"-p") == 0){
+            passoPasso = 1;
+        }
+        if (strcmp(comando,"-i") == 0){
+            inicioMemoria = atoi(argv[++i]);
+        }
+        if (strcmp(comando,"-f") == 0){
+            fimMemoria = atoi(argv[++i]);
+        }
+    }
+    init(tamMemoria);
     carregaMemoria("teste2.hex");
-    imprimeMemoria();
+    imprimeMemoria(inicioMemoria, fimMemoria);
     do{
         busca();
-        imprimeRegistradores();
-        imprimeMemoria();
+        //imprimeRegistradores();
+        //imprimeMemoria(inicioMemoria, fimMemoria);
         decodificaExecuta();
     } while (uc.PC != -1 && uc.CIRCUITOCONTROLE.erro != 1);
-    imprimeMemoria();
+    imprimeMemoria(inicioMemoria, fimMemoria);
     return (0);
 }

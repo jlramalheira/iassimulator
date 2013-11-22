@@ -27,7 +27,8 @@ typedef struct {
 tUC uc;
 extern tULA ula;
 
-void init() {
+void init(int tamMemoria) {
+    iniciaMemoria(tamMemoria);
     int i;
     for (i = 0; i < TAMMEMORIA; i++) {
         stor(i,0);
