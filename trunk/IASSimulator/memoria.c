@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define TAMMEMORIA 4096
 #define TAMLINHA 12
 
 typedef struct {
@@ -32,12 +31,18 @@ tlinha * memoria;
 extern tULA ula;
 extern tUC uc;
 
+int tamanhoMeoria;
 void iniciaMemoria(int tamMemoria){
-    memoria = (tlinha *) malloc(tamMemoria * sizeof(tlinha));
+    if (tamMemoria > 4096){
+        printf("O tamanho máximo da memória é 4096, portanto a memória terá somente este tamanho!\n");
+        tamanhoMeoria = 4096;
+    }
+    tamanhoMeoria = tamMemoria;
+    memoria = (tlinha *) malloc(tamanhoMeoria * sizeof(tlinha));
 }
 void load(int index) {
     //push index chama assembly in line
-    if (index < TAMMEMORIA) {
+    if (index < tamanhoMeoria) {
         ula.MBR = memoria[index].linha;
     } else {
         uc.CIRCUITOCONTROLE.erro = 1;
@@ -46,7 +51,7 @@ void load(int index) {
 }
 
 void stor(int index) {
-    if (index < TAMMEMORIA) {
+    if (index < tamanhoMeoria) {
         memoria[index].linha = ula.MBR;
     } else {
         uc.CIRCUITOCONTROLE.erro = 1;
@@ -55,7 +60,7 @@ void stor(int index) {
 
 void storEndereco(int index, int esquerda) {
     long int value = ula.MBR;
-    if (index < TAMMEMORIA) {
+    if (index < tamanhoMeoria) {
         if (esquerda){
             value = value<<20;
             memoria[index].linha = (memoria[index].linha & 0xFF000FFFFF) + value;

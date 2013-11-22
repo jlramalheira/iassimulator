@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define TAMMEMORIA 4096
 #define TAMLINHA 12
 
 typedef struct {
@@ -30,7 +29,7 @@ extern tULA ula;
 void init(int tamMemoria) {
     iniciaMemoria(tamMemoria);
     int i;
-    for (i = 0; i < TAMMEMORIA; i++) {
+    for (i = 0; i < tamMemoria; i++) {
         stor(i,0);
     }
     ula.AC = 0;
