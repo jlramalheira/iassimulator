@@ -31,38 +31,79 @@ tlinha * memoria;
 extern tULA ula;
 extern tUC uc;
 
-int tamanhoMeoria;
-void iniciaMemoria(int tamMemoria){
-    if (tamMemoria > 4096){
+int tamanhoMemoria;
+
+void iniciaMemoria(int tamMemoria) {
+    if (tamMemoria > 4096) {
         printf("O tamanho máximo da memória é 4096, portanto a memória terá somente este tamanho!\n");
-        tamanhoMeoria = 4096;
+        tamanhoMemoria = 4096;
     }
-    tamanhoMeoria = tamMemoria;
-    memoria = (tlinha *) malloc(tamanhoMeoria * sizeof(tlinha));
+    tamanhoMemoria = tamMemoria;
+    memoria = (tlinha *) malloc(tamanhoMemoria * sizeof (tlinha));
 }
+
 void load(int index) {
+    __asm__(
+            "movq $0, %rax\n\t"
+            "movl %edi, %eax \n\t"
+            "cmp tamanhoMemoria(%rip), %rax \n\t"
+            "jge load_else \n\t"
+            "movq memoria(%rip), %rbx\n\t"
+            "shlq $3, %rax \n\t"
+            "addq %rax, %rbx \n\t"
+            "movq (%rbx), %rbx \n\t"
+            "movq %rbx, ula+16(%rip) \n\t"
+            "jmp load_exit \n\t"
+            "load_else:\n\t"
+            //"movb $1, uc+8(%rip)\n\t"
+            "movzbl uc+8(%rip), %eax\n\t"
+            "orl $2, %eax\n\t"
+            "movb %al, uc+8(%rip) \n\t"
+            "load_exit: \n\t"
+            );
     //push index chama assembly in line
-    if (index < tamanhoMeoria) {
-        ula.MBR = memoria[index].linha;
-    } else {
-        uc.CIRCUITOCONTROLE.erro = 1;
-        return NULL;
-    }
+    /*
+        if (index < tamanhoMemoria) {
+            ula.MBR = memoria[index].linha;
+        } else {
+            uc.CIRCUITOCONTROLE.erro = 1;
+        }
+     */
 }
 
 void stor(int index) {
-    if (index < tamanhoMeoria) {
+        __asm__(
+            "movq $0, %rax\n\t"
+            "movl %edi, %eax \n\t"
+            "cmp tamanhoMemoria(%rip), %rax \n\t"
+            "jge stor_else \n\t"
+            "movq memoria(%rip), %rbx\n\t"
+            "shlq $3, %rax \n\t"
+            "addq %rax, %rbx \n\t"
+            "movq ula+16(%rip), %rax \n\t"
+            "movq %rax, (%rbx) \n\t"
+            "jmp stor_exit \n\t"
+            "stor_else:\n\t"
+            //"movb $1, uc+8(%rip)\n\t"
+            "movzbl uc+8(%rip), %eax\n\t"
+            "orl $2, %eax\n\t"
+            "movb %al, uc+8(%rip) \n\t"
+            "stor_exit: \n\t"
+            );
+/*
+    if (index < tamanhoMemoria) {
         memoria[index].linha = ula.MBR;
     } else {
         uc.CIRCUITOCONTROLE.erro = 1;
     }
+*/
 }
 
 void storEndereco(int index, int esquerda) {
     long int value = ula.MBR;
-    if (index < tamanhoMeoria) {
-        if (esquerda){
-            value = value<<20;
+    if (index < tamanhoMemoria) {
+        if (esquerda) {
+            value = value << 20;
             memoria[index].linha = (memoria[index].linha & 0xFF000FFFFF) + value;
         } else {
             memoria[index].linha = (memoria[index].linha & 0xFFFFFFF000) + value;
@@ -85,7 +126,7 @@ void carregaMemoria(char * arquivo) {
     char * linha = malloc(TAMLINHA);
     do {
         fgets(linha, TAMLINHA, hex);
-        converteGrava(linha,i++);
+        converteGrava(linha, i++);
     } while (!feof(hex));
 }
 
