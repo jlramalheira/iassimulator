@@ -27,7 +27,7 @@ typedef struct {
     tCircuitoControle CIRCUITOCONTROLE;
 } tUC;
 
-extern tlinha memoria[4096];
+extern tlinha * memoria;
 extern tULA ula;
 extern tUC uc;
 
@@ -69,22 +69,22 @@ void converteGrava(char * hexadecimal, int j) {
     stor(j);
 }
 
-void imprimeMemoria() {
-    int i = 0;
-    while (i < 57) {
+void imprimeMemoria(int inicio, int fim) {
+    int i = inicio;
+    while (i <= fim) {
         printf("%d - %lX\n", i, memoria[i].linha);
         i++;
     }
 }
 
 void imprimeRegistradores() {
-    printf("AC: %ld - ", ula.AC);
-    printf("MQ: %ld\n", ula.MQ);
-    printf("MBR: %lX\n", ula.MBR);
-    printf("IBR: %lX\n", uc.IBR);
-    printf("IR: %lX\n", uc.IR);
-    printf("PC: %d\n", uc.PC);
-    printf("MAR: %d\n", uc.MAR);
+    printf("AC: %lud - ", ula.AC);
+    printf("MQ: %lud\n", ula.MQ);
+    printf("MBR: %luX\n", ula.MBR);
+    printf("IBR: %luX\n", uc.IBR);
+    printf("IR: %luX\n", uc.IR);
+    printf("PC: %ud\n", uc.PC);
+    printf("MAR: %ud\n", uc.MAR);
 }
 
 long int mask(long int valor, long int mascara, int deslocamento) {
